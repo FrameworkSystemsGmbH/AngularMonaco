@@ -1,0 +1,15 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./dist/test",
+    "types": [
+      "jasmine"
+    ]
+  },
+  "include": [
+    "src/init.ts",
+    "src/**/*.d.ts",
+    "src/ext/**/*.ts",
+    "src/**/*.spec.ts"
+  ]
+}

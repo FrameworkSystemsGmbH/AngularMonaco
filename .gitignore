@@ -1,0 +1,11 @@
+# Logs
+*.log
+
+# Dependency directories
+/node_modules
+
+# Build directories
+/dist
+
+# Angular
+/.angular/cache

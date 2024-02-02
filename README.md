@@ -1,2 +1,3 @@
-# AngularMonaco
-Minimal example of Monaco in Angular
+# Angular Monaco
+
+Minimal example of Monaco in Angluar
