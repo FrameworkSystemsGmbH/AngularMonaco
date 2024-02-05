@@ -1,8 +1,11 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+
 /// <reference path="../../node_modules/monaco-editor/monaco.d.ts" />
 
 import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { LoaderService } from '@app/loader.service';
-import { Observable, Subscription, mergeMap } from 'rxjs';
 
 @Component({
   standalone: true,
@@ -15,27 +18,15 @@ export class AppComponent implements OnInit, OnDestroy {
   @ViewChild('anchor')
   public anchor: ElementRef | null = null;
 
-  private readonly _loaderService: LoaderService;
-
   private _editor: monaco.editor.IStandaloneCodeEditor | null = null;
-  private _initSub: Subscription | null = null;
-
-  public constructor(loaderService: LoaderService) {
-    this._loaderService = loaderService;
-  }
 
   public ngOnInit(): void {
-    this._initSub = this.voidObs().pipe(
-      mergeMap(async () => {
-        await this._loaderService.loadMonaco();
-        this.initMonaco();
-      })
-    ).subscribe();
+    this.loadMonaco()
+      .then(() => this.initMonaco())
+      .catch(err => console.error(err));
   }
 
   public ngOnDestroy(): void {
-    this._initSub?.unsubscribe();
-
     this._editor?.dispose();
     this._editor = null;
   }
@@ -51,10 +42,29 @@ export class AppComponent implements OnInit, OnDestroy {
     });
   }
 
-  private voidObs(): Observable<void> {
-    return new Observable<void>(sub => {
-      sub.next();
-      sub.complete();
+  private async loadMonaco(): Promise<void> {
+    return new Promise<void>((resolve: (() => void)) => {
+      const win: any = window as any;
+
+      if (win.monaco != null) {
+        resolve();
+        return;
+      }
+
+      const onAmdLoader = (): any => {
+        win.require.config({ paths: { 'vs': 'assets/monaco/min/vs' } });
+        win.require(['vs/editor/editor.main'], () => {
+          resolve();
+        });
+      };
+
+      if (!win.require) {
+        const loaderScript: HTMLScriptElement = document.createElement('script');
+        loaderScript.type = 'text/javascript';
+        loaderScript.src = 'assets/monaco/min/vs/loader.js';
+        loaderScript.addEventListener('load', onAmdLoader);
+        document.body.appendChild(loaderScript);
+      }
     });
   }
 }
